@@ -3,61 +3,63 @@ package gitlab
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/spf13/viper"
 )
 
-type config struct {
-	GitlabURL  string
-	PrivateKey string
-}
+var client = http.DefaultClient
 
-var Config = config{}
+type Gitlab struct{}
 
-type Project struct {
-	Id   int
-	Name string
-}
+var DefaultClient = &Gitlab{}
 
-func (c config) apiURL() string {
-	return fmt.Sprintf("%v/api/v4", Config.GitlabURL)
-}
+func (g Gitlab) Search(s SearchObject, searchString string) SearchObject {
+	req, err := apiRequest(http.MethodGet, nil, s.Endpoint())
 
-func GetProject(name string) Project {
-	client := http.DefaultClient
+	if err != nil {
+		panic(err)
+	}
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%v/projects", Config.apiURL()), nil)
 	values := req.URL.Query()
-	values.Add("search", name)
+	values.Add("search", searchString)
 	req.URL.RawQuery = values.Encode()
 
-	fmt.Println(req.URL.String())
-	req.Header.Set("PRIVATE-TOKEN", Config.PrivateKey)
-	if err != nil {
-		panic(err)
-	}
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 
 	if err != nil {
 		panic(err)
 	}
+	parseSearch(resp)
 
 	defer resp.Body.Close()
 
-	ps := []Project{}
-
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(bodyBytes))
-
-	json.Unmarshal(bodyBytes, &ps)
 	if err != nil {
 		panic(err)
 	}
+	s.setResult(parseSearch(resp), bodyBytes)
 
-	fmt.Println(ps)
-	return Project{}
+	return s
 }
 
-func (p Project) addVariable(key, value string) {
+func apiRequest(method string, body io.Reader, format string, a ...interface{}) (*http.Request, error) {
+	apiURL := fmt.Sprintf("%v/api/v4", viper.GetString("url"))
+	req, err := http.NewRequest(method, apiURL+fmt.Sprintf(format, a...), body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("PRIVATE-TOKEN", viper.GetString("pkey"))
 
+	return req, nil
+}
+
+func parseGitlabError(body io.ReadCloser) gitlabError {
+	var ge gitlabError
+	if err := json.NewDecoder(body).Decode(&ge); err != nil {
+		panic(err)
+	}
+	return ge
 }

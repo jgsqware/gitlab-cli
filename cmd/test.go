@@ -21,9 +21,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-// variablesCmd represents the variables command
-var variablesCmd = &cobra.Command{
-	Use:   "variables",
+// testCmd represents the test command
+var testCmd = &cobra.Command{
+	Use:   "test",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -33,13 +33,22 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Work your own magic here
-		fmt.Println("variables called")
+		fmt.Println(viper.GetString("url"))
+		fmt.Println(viper.GetString("pkey"))
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(variablesCmd)
+	RootCmd.AddCommand(testCmd)
 
-	variablesCmd.PersistentFlags().StringP("project", "p", "", "GitLab Project")
-	viper.BindPFlag("project", variablesCmd.PersistentFlags().Lookup("project"))
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// testCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// testCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
 }

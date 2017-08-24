@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"os"
 
-	"gitlab.lampiris.be/j.garciagonzalez/gitlab-cli/gitlab"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -29,20 +27,10 @@ var cfgFile string
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "gitlab-cli",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Short: "CLI to interact with GitLab API ",
+	Long:  ``,
 }
 
-// Execute adds all child commands to the root command sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -53,16 +41,12 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports Persistent Flags, which, if defined here,
-	// will be global for your application.
-
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gitlab-cli.yaml)")
-	RootCmd.PersistentFlags().StringVar(&gitlab.Config.GitlabURL, "url", "https://gitlab.lampiris.be", "GitLab url (default is https://gitlab.lampiris.be)")
-	RootCmd.PersistentFlags().StringVar(&gitlab.Config.PrivateKey, "key", "", "GitLab private key")
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	RootCmd.PersistentFlags().String("url", "https://gitlab.lampiris.be", "GitLab url (default is https://gitlab.lampiris.be)")
+	RootCmd.PersistentFlags().String("pkey", "", "GitLab private key")
+
+	viper.BindPFlag("url", RootCmd.PersistentFlags().Lookup("url"))
+	viper.BindPFlag("pkey", RootCmd.PersistentFlags().Lookup("pkey"))
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -72,8 +56,10 @@ func initConfig() {
 	}
 
 	viper.SetConfigName(".gitlab-cli") // name of config file (without extension)
-	viper.AddConfigPath("$HOME")       // adding home directory as first search path
-	viper.AutomaticEnv()               // read in environment variables that match
+
+	viper.AddConfigPath("$HOME") // adding home directory as first search path
+	viper.AddConfigPath(".")     // adding home directory as first search path
+	viper.AutomaticEnv()         // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

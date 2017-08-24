@@ -15,44 +15,27 @@
 package cmd
 
 import (
-	"fmt"
-
-	"gitlab.lampiris.be/j.garciagonzalez/gitlab-cli/gitlab"
-
-	"os"
-
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// addCmd represents the add command
-var addCmd = &cobra.Command{
-	Use:   "add",
-	Short: "Add a build variable",
+// projectCmd represents the project command
+var projectCmd = &cobra.Command{
+	Use:   "project",
+	Short: "Perform actions of GitLab project",
 	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-
-		if viper.Get("project") == "" {
-			fmt.Println("No project name specified")
-			os.Exit(1)
-		}
-
-		if len(args) == 0 {
-			fmt.Println("no variables specified")
-			os.Exit(1)
-		}
-
-		project := gitlab.GetProject(viper.GetString("project"))
-
-		err := project.AddVariable(args[0])
-
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	},
 }
 
 func init() {
-	variablesCmd.AddCommand(addCmd)
+	RootCmd.AddCommand(projectCmd)
+
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// projectCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// projectCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
 }

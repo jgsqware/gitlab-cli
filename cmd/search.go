@@ -16,30 +16,34 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
+	"gitlab.lampiris.be/j.garciagonzalez/gitlab-cli/gitlab"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// variablesCmd represents the variables command
-var variablesCmd = &cobra.Command{
-	Use:   "variables",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+// searchCmd represents the search command
+var searchCmd = &cobra.Command{
+	Use:   "search",
+	Short: "Search for a project",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("variables called")
+		if len(args) == 0 {
+			fmt.Println("no search specified")
+			os.Exit(1)
+		}
+
+		ps := gitlab.ProjectSearch{}
+		gitlab.DefaultClient.Search(&ps, args[0])
+
+		p := gitlab.Project{}
+		ps.Select(&p)
+
+		fmt.Println(p)
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(variablesCmd)
-
-	variablesCmd.PersistentFlags().StringP("project", "p", "", "GitLab Project")
-	viper.BindPFlag("project", variablesCmd.PersistentFlags().Lookup("project"))
+	projectCmd.AddCommand(searchCmd)
 }
